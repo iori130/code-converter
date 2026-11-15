@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マルチ言語コード変換アプリ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      margin-top: 15px;
+    }
+    label:first-child {
+      margin-top: 0;
+    }
+    input[type="password"], select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #2da44e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2c974b;
+    }
+    button:disabled {
+      background-color: #94d3a2;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      min-height: 100px;
+    }
+    .copy-btn {
+      background-color: #0969da;
+      margin-top: 10px;
+      padding: 8px;
+      font-size: 0.9rem;
+    }
+    .copy-btn:hover {
+      background-color: #0860ca;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <!-- クマのドット絵アイコン -->
+    <svg width="56" height="56" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://w3.org">
+      <!-- 耳（茶色） -->
+      <rect x="2" y="1" width="3" height="3" fill="#a66829"/>
+      <rect x="11" y="1" width="3" height="3" fill="#a66829"/>
+      <!-- 耳の中（ピンク） -->
+      <rect x="3" y="2" width="1" height="2" fill="#f49ac1"/>
+      <rect x="12" y="2" width="1" height="2" fill="#f49ac1"/>
+      <!-- 顔の輪郭（茶色） -->
+      <rect x="4" y="3" width="8" height="1" fill="#a66829"/>
+      <rect x="2" y="4" width="12" height="2" fill="#a66829"/>
+      <rect x="1" y="6" width="14" height="6" fill="#a66829"/>
+      <rect x="2" y="12" width="12" height="2" fill="#a66829"/>
+      <rect x="4" y="14" width="8" height="1" fill="#a66829"/>
+      <!-- 目（黒） -->
+      <rect x="4" y="7" width="1" height="2" fill="#1a1a1a"/>
+      <rect x="11" y="7" width="1" height="2" fill="#1a1a1a"/>
+      <!-- 口周り（ベージュ） -->
+      <rect x="6" y="8" width="4" height="1" fill="#f5d0a9"/>
+      <rect x="5" y="9" width="6" height="4" fill="#f5d0a9"/>
+      <rect x="6" y="13" width="4" height="1" fill="#f5d0a9"/>
+      <!-- 鼻（こげ茶） -->
+      <rect x="7" y="9" width="2" height="1" fill="#4a2500"/>
+      <!-- 口（赤ピンク） -->
+      <rect x="7" y="11" width="2" height="1" fill="#d94e67"/>
+    </svg>
+    <h1>マルチ言語コード変換アプリ</h1>
+  </div>
+
+  <div class="box">
+    <label for="apiKey">Google Gemini APIキー（保存はされません）</label>
+    <input type="password" id="apiKey" placeholder="AIzaSy... で始まるキーを入力">
+
+    <label for="language">変換先の言語・ツールを選択</label>
+    <select id="language">
+      <option value="R言語">R言語</option>
+      <option value="Python">Python</option>
+      <option value="F#">F#</option>
+      <option value="JavaScript">JavaScript</option>
+      <option value="GitHub (GitコマンドやGitHub ActionsのYAMLなど)">GitHub（Gitコマンド / Actions）</option>
+    </select>
+
+    <label for="inputText">やりたいこと、または変換元のコード</label>
+    <textarea id="inputText" placeholder="例：CSVファイルを読み込んで平均値を計算する&#10;例：print('Hello World')"></textarea>
+
+    <button id="convertBtn" onclick="convertCode()">コードに変換する</button>
+  </div>
+
+  <div class="box">
+    <label>生成されたコード</label>
+    <pre id="outputCode">ここに結果が表示されます...</pre>
+    <button class="copy-btn" onclick="copyCode()">コードをコピー</button>
+  </div>
+
+  <script>
+    async function convertCode() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const language = document.getElementById('language').value;
+      const inputText = document.getElementById('inputText').value.trim();
+      const outputArea = document.getElementById('outputCode');
+      const btn = document.getElementById('convertBtn');
+
+      if (!apiKey) {
+        alert('APIキーを入力してください。');
+        return;
+      }
+      if (!inputText) {
+        alert('変換したい内容を入力してください。');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '変換中...';
+      outputArea.textContent = 'AIがコードを生成しています...';
+
+      const prompt = `あなたは優秀なプログラマーです。以下の入力内容（日本語の指示、または別のプログラミング言語のコード）を、指定された言語・形式のコードに変換してください。
+余計な挨拶や解説は省き、コード（およびコード内の必要なコメント）のみを出力してください。マークダウンのコードブロック記号（\`\`\`）は含めないでください。
+
+【変換先の言語・形式】
+${language}
+
+【入力内容】
+${inputText}`;
+
+      try {
+        const response = await fetch(`https://googleapis.com{apiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{ text: prompt }]
+            }]
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'APIエラーが発生しました');
+        }
+
+        const resultText = data.candidates[0].content.parts[0].text;
+        outputArea.textContent = resultText.trim();
+
+      } catch (error) {
+        outputArea.textContent = 'エラー: ' + error.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'コードに変換する';
+      }
+    }
+
+    function copyCode() {
+      const code = document.getElementById('outputCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('コードをコピーしました！');
+      });
+    }
+  </script>
+
+</body>
+</html>
